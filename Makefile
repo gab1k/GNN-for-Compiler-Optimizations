@@ -9,6 +9,9 @@ opt-sample:
 	opt --loop-reduce -S hello-world.ll -o hello-world-after.ll
 	opt --loop-reduce -S loop.ll -o loop-after.ll
 
+make-dependency-graph-easy-project:
+	python3 src/graphs/dependency_graph/dependency_graph.py data/easy_project data/easy_project/dependency_graph
+
 clean:
 	rm -rf ./data/*.ll
 	rm -rf ./data/*.s
