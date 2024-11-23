@@ -1,20 +1,20 @@
-gen-llvm-ir:
-	clang++ ./data/loop.cpp -S -o ./data/loop.S
-	clang++ ./data/loop.cpp -emit-llvm -S -o./data/loop.ll
+.PHONY: all
 
-	clang++ ./data/hello-world.cpp -S -o ./data/hello-world.S
-	clang++ ./data/hello-world.cpp -emit-llvm -S -o./data/hello-world.ll
+all: run-app run-gen-dataset run-save-model
 
-opt-sample:
-	opt --loop-reduce -S hello-world.ll -o hello-world-after.ll
-	opt --loop-reduce -S loop.ll -o loop-after.ll
+run-app:
+	PYTHONPATH=./src:$(PYTHONPATH) python cmd/app/main.py
+
+run-gen-dataset:
+	PYTHONPATH=./src:$(PYTHONPATH) python cmd/gen_dataset/main.py
+
+run-save-model:
+	PYTHONPATH=./src:$(PYTHONPATH) python cmd/save_model/main.py
+
+.PHONY: clean
 
 make-dependency-graph-easy-project:
 	python3 src/graphs/dependency_graph/dependency_graph.py data/easy_project data/easy_project/dependency_graph
 
 clean:
-	rm -rf ./data/*.ll
-	rm -rf ./data/*.s
-	rm -rf ./data/*.S
-	rm -rf ./data/*.bc
-	rm -rf ./data/*.mir
+	rm -rf ./generated_data/*
