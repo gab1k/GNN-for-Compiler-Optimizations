@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: run-gen-dataset run-save-model run-app
+all: gen-dataset save-model app
 
 .PHONY: install
 
@@ -12,11 +12,11 @@ install:
 clean:
 	rm -rf ./generated_data/*
 
-run-gen-dataset:
+gen-dataset:
 	PYTHONPATH=./src:$(PYTHONPATH) python cmd/dataset_generator/main.py
 
-run-save-model:
+save-model:
 	PYTHONPATH=./src:$(PYTHONPATH) python cmd/model/main.py
 
-run-app:
+app:
 	PYTHONPATH=./src:$(PYTHONPATH) python cmd/app/main.py
