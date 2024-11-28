@@ -12,4 +12,4 @@ def get_config(config_path):
 
 if __name__=='__main__':
     config = get_config('configs/dataset_generator_config.ini')
-    Generator(config).Generate()
+    Generator(config).generate()
