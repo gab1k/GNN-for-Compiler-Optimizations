@@ -20,3 +20,6 @@ save-model:
 
 app:
 	PYTHONPATH=./src:$(PYTHONPATH) python cmd/app/main.py
+
+check-ast:
+	PYTHONPATH=./src:$(PYTHONPATH) python src/model/graphs/ast/ast_graph.py
