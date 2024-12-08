@@ -1,2 +1,4 @@
 graphviz
 networkx
+node2vec
+numpy
