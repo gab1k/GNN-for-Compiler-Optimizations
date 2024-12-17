@@ -2,3 +2,4 @@ graphviz
 networkx
 node2vec
 numpy
+scipy==1.12

@@ -60,6 +60,17 @@ class Generator:
         return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file]
 
 
+    def _get_components_for_get_ir(self, in_file):
+        program_name = 'clang'
+        flag_asm = '-S'
+        flag_llvm = '-emit-llvm'
+        opt_flag = '-O0'
+        flag_name = '-o'
+        out_file = './generated_data' + in_file.removeprefix('./data')
+        
+        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file]
+
+
     def _get_passes(self):
         passes = ''
         

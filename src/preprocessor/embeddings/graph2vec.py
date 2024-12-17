@@ -1,4 +1,4 @@
-from src.model.graphs.base_graph import GraphBase 
+from src.preprocessor.graphs.base_graph import GraphBase 
 import networkx as nx
 from node2vec import Node2Vec
 import numpy as np

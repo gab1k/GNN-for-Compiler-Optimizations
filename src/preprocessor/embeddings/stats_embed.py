@@ -1,4 +1,4 @@
-from src.model.graphs.base_graph import GraphBase 
+from src.preprocessor.graphs.base_graph import GraphBase 
 
 def get_stats_embedding(G: GraphBase) -> dict[str, int]:
     res = {

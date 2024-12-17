@@ -1,10 +1,10 @@
 import subprocess
 import os
 import json
-from src.model.graphs.base_graph import GraphBase 
+from src.preprocessor.graphs.base_graph import GraphBase 
 
 
-class AstGraph(GraphBase):
+class ASTGraph(GraphBase):
     def __init__(self, path_to_cpp_file=None, temp_json_file="tmp/ast.json"):
         super().__init__()
         
@@ -40,7 +40,7 @@ class AstGraph(GraphBase):
 # пример
 if __name__ == "__main__":
     cpp_file = "./data/samples/main.cpp"  # Укажите путь к вашему cpp-файлу
-    graph = AstGraph(path_to_cpp_file=cpp_file)
+    graph = ASTGraph(path_to_cpp_file=cpp_file)
     
     print("Количество узлов:", graph.node_count())
     print("Количество ребер:", graph.edge_count())
