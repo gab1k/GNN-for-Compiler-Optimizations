@@ -96,14 +96,15 @@ class Generator:
 
     def _get_components_for_custom_gen(self, in_file):
         program_name = 'opt'
+        flag_asm = '-S'
         flag_passes = '-passes'
-        # passes = self._get_passes()
-        passes = "default<Oz>"
+        # passes = "default<Oz>"
+        passes = self._get_passes()
         flag_name = '-o'
         file_name = get_name_without_extention(in_file)
         out_file = file_name + 'll-passes'
         
-        return [program_name, in_file, flag_passes, passes, flag_name, out_file], out_file
+        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file], out_file
 
 
     def _get_components_for_get_asm(self, in_file, ext='s'):
