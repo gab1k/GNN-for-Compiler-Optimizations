@@ -2,7 +2,7 @@ import os
 import configparser
 import subprocess
 
-from dataset_generator.utils import actions
+from dataset_generator.utils import actions, get_name_without_extention
 
 
 class Generator:
@@ -12,12 +12,8 @@ class Generator:
 
     def generate(self):
         for file in self._get_files():
-            self._gen_file(file)
-        # components = self._get_components()
-        # subprocess.run(components)
-        # для упрощения - будем дропать по9следовательности с некорректными вводными (перепутан порядок модульных и функциональных)
-        # opt -S -passes='always-inline,adce' a.1 -o a.3
-    
+            self._gen_files(file)
+
 
     def _get_files(self):
         file_list = []
@@ -44,20 +40,17 @@ class Generator:
         return filtered_list
         
 
-    def _gen_file(self, file):
-        components = self._get_components_for_custom_gen(file)
+    def _gen_files(self, in_file):
+        components, ir_file = self._get_components_for_get_ir(in_file)
+        subprocess.run(components)
+        
+        components, out_pass_file = self._get_components_for_custom_gen(ir_file)
+        subprocess.run(components)
+        
+        components, out_asm_file = self._get_components_for_final_asm(out_pass_file)
         subprocess.run(components)
 
-
-    def _get_components_for_custom_gen(self, in_file):
-        program_name = 'opt'
-        flag_asm = '-S'
-        flag_passes = '-passes'
-        passes = self._get_passes()
-        flag_name = '-o'
-        out_file = './generated_data' + in_file.removeprefix('./data')
-        
-        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file]
+        return out_asm_file
 
 
     def _get_components_for_get_ir(self, in_file):
@@ -66,16 +59,42 @@ class Generator:
         flag_llvm = '-emit-llvm'
         opt_flag = '-O0'
         flag_name = '-o'
-        out_file = './generated_data' + in_file.removeprefix('./data')
         
-        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file]
+        file_name = get_name_without_extention(in_file)
+        out_file = './generated_data/' + file_name.removeprefix('./data')[1:].replace('/', '.') + 'll'
+        
+        return [program_name, in_file, flag_asm, flag_llvm, opt_flag, flag_name, out_file], out_file
+        
+
+    def _get_components_for_custom_gen(self, in_file):
+        program_name = 'opt'
+        flag_asm = '-S'
+        flag_passes = '-passes'
+        passes = self._get_passes()
+        flag_name = '-o'
+        file_name = get_name_without_extention(in_file)
+        out_file = file_name + 'll-out-pass'
+        
+        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file], out_file
+
+       
+    def _get_components_for_final_asm(self, in_file):
+        program_name = 'llc'
+        flag_name = '-o'
+        file_name = get_name_without_extention(in_file)
+        out_file = file_name + '.S'
+        
+        return [program_name, in_file, flag_name, out_file], out_file
 
 
     def _get_passes(self):
         passes = ''
         
-        pass_list = self.config.get('PASSES', 'pass_list').split('\n')
-        for p in pass_list:
-            passes += f',{actions[p].value}'
+        pass_list = self.config.get('PASSES', 'pass_list').split('\n')[1:]
+        for i, p in enumerate(pass_list):
+            if i == 0:
+                passes += f'{actions[p].value}'   
+            else:
+                passes += f',{actions[p].value}'
 
         return passes

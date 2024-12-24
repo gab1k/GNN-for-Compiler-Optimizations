@@ -3,6 +3,13 @@
 from enum import Enum
 
 
+
+def get_name_without_extention(name):
+    ext = name.split('.')[-1]
+    
+    return name.removesuffix(ext)
+
+
 class actions(Enum):
     AddDiscriminators = "add-discriminators"
     Adce = "adce"
