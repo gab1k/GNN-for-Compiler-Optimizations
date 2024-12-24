@@ -32,5 +32,5 @@ if __name__=='__main__':
 
     catboost_model.load()
     pytorch_model.load()
-    print(f"Catboost balanced accuracy: {balanced_accuracy_score(y_test, catboost_model.model_wrapper.predict(X_test))}")
-    print(f"Pytorch balanced accuracy: {balanced_accuracy_score(y_test, pytorch_model.model_wrapper.predict(X_test))}")
+    print(f"Catboost balanced accuracy: {balanced_accuracy_score(y_test, catboost_model.predict(X_test))}")
+    print(f"Pytorch balanced accuracy: {balanced_accuracy_score(y_test, pytorch_model.predict(X_test))}")

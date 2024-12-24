@@ -6,6 +6,7 @@ all: gen-dataset save-model app
 
 install:
 	pip install -r requirements.txt
+	brew install llvm # for mac os. If linux change it
 
 .PHONY: clean
 

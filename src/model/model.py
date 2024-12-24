@@ -18,7 +18,7 @@ class Model():
         self.model_wrapper.fit(X_train, y_train)
 
     def predict(self, X_test):
-        self.model_wrapper.predict(X_test)
+        return self.model_wrapper.predict(X_test)
 
     def save(self):
         self.model_wrapper.save()
