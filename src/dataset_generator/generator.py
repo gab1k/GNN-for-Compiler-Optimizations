@@ -3,6 +3,9 @@ import configparser
 import subprocess
 
 from dataset_generator.utils import actions, get_name_without_extention
+from src.preprocessor.graphs.ast.ast_graph import ASTGraph 
+from src.preprocessor.embeddings.graph2vec_embed import graph2vec
+from src.preprocessor.embeddings.node2vec_mean import get_mean_node_embed
 
 
 class Generator:
@@ -15,12 +18,12 @@ class Generator:
         for file in self._get_files():
             out_asm_file, out_passes_asm_file, ret_code = self._gen_files(file)
             if ret_code == 0:
-                self.out_files.append((out_asm_file, out_passes_asm_file))
+                self.out_files.append((out_asm_file, out_passes_asm_file, file))
 
 
     def make_dataset(self):
         # csv : file_name, passes, lenght_without_passes, lenght_with_passes
-        for out_asm_file, out_passes_asm_file in self.out_files:
+        for out_asm_file, out_passes_asm_file, cpp_file in self.out_files:
             out_asm_file_cnt = 0
             with open(out_asm_file) as f:
                 out_asm_file_cnt = sum(1 for _ in f)
@@ -28,8 +31,12 @@ class Generator:
             out_passes_asm_file_cnt = 0
             with open(out_passes_asm_file) as f:
                 out_passes_asm_file_cnt = sum(1 for _ in f)
-                
-            print(out_asm_file_cnt - out_passes_asm_file_cnt, out_passes_asm_file)
+            
+            graph = ASTGraph(cpp_file)
+            embed1 = graph2vec(graph.G)
+            embed2 = get_mean_node_embed(graph.G)
+            print(embed2)
+            # print(out_asm_file_cnt - out_passes_asm_file_cnt, out_passes_asm_file)
 
 
     def _get_files(self):
