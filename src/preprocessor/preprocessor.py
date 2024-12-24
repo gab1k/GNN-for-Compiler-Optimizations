@@ -1,6 +1,6 @@
 from src.preprocessor.mode import ProcessMode, GraphMode
 from src.preprocessor.graphs.ast.ast_graph import ASTGraph
-from src.preprocessor.embeddings.graph2vec import get_mean_node_embed
+from preprocessor.embeddings.node2vec_mean import get_mean_node_embed
 
 
 class Preporcessor:
