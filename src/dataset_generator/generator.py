@@ -13,24 +13,23 @@ class Generator:
 
     def generate_files(self):
         for file in self._get_files():
-            out_asm_file, out_passes_asm_file = self._gen_files(file)
-            self.out_files.append((out_asm_file, out_passes_asm_file))
+            out_asm_file, out_passes_asm_file, ret_code = self._gen_files(file)
+            if ret_code == 0:
+                self.out_files.append((out_asm_file, out_passes_asm_file))
 
 
     def make_dataset(self):
+        # csv : file_name, passes, lenght_without_passes, lenght_with_passes
         for out_asm_file, out_passes_asm_file in self.out_files:
-            try:
-                out_asm_file_cnt = 0
-                with open(out_asm_file) as f:
-                    out_asm_file_cnt = sum(1 for _ in f)
+            out_asm_file_cnt = 0
+            with open(out_asm_file) as f:
+                out_asm_file_cnt = sum(1 for _ in f)
+            
+            out_passes_asm_file_cnt = 0
+            with open(out_passes_asm_file) as f:
+                out_passes_asm_file_cnt = sum(1 for _ in f)
                 
-                out_passes_asm_file_cnt = 0
-                with open(out_passes_asm_file) as f:
-                    out_passes_asm_file_cnt = sum(1 for _ in f)
-                    
-                print(out_asm_file_cnt - out_passes_asm_file_cnt)
-            except:
-                print(f"fail {out_asm_file, out_passes_asm_file}")
+            print(out_asm_file_cnt - out_passes_asm_file_cnt, out_passes_asm_file)
 
 
     def _get_files(self):
@@ -60,18 +59,26 @@ class Generator:
 
     def _gen_files(self, in_file):
         components, ir_file = self._get_components_for_get_ir(in_file)
-        subprocess.run(components)
+        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if cp.returncode != 0:
+            return "", "", cp.returncode
         
-        components, out_asm_file = self._get_components_for_final_asm(ir_file, 'S')
-        subprocess.run(components)
+        components, out_asm_file = self._get_components_for_get_asm(ir_file, 's')
+        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if cp.returncode != 0:
+            return "", "", cp.returncode
+        
+        self._drop_optnone(ir_file)
         
         components, out_pass_file = self._get_components_for_custom_gen(ir_file)
-        subprocess.run(components)
+        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if cp.returncode != 0:
+            return "", "", cp.returncode
 
-        components, out_passes_asm_file = self._get_components_for_final_asm(out_pass_file, 'S-passes')
-        subprocess.run(components)
+        components, out_passes_asm_file = self._get_components_for_get_asm(out_pass_file, 's-passes')
+        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        return out_asm_file, out_passes_asm_file
+        return out_asm_file, out_passes_asm_file, cp.returncode
 
 
     def _get_components_for_get_ir(self, in_file):
@@ -89,21 +96,21 @@ class Generator:
 
     def _get_components_for_custom_gen(self, in_file):
         program_name = 'opt'
-        flag_asm = '-S'
         flag_passes = '-passes'
-        passes = self._get_passes()
+        # passes = self._get_passes()
+        passes = "default<Oz>"
         flag_name = '-o'
         file_name = get_name_without_extention(in_file)
         out_file = file_name + 'll-passes'
         
-        return [program_name, in_file, flag_asm, flag_passes, passes, flag_name, out_file], out_file
+        return [program_name, in_file, flag_passes, passes, flag_name, out_file], out_file
 
-       
-    def _get_components_for_final_asm(self, in_file, out_ext='S'):
+
+    def _get_components_for_get_asm(self, in_file, ext='s'):
         program_name = 'llc'
         flag_name = '-o'
         file_name = get_name_without_extention(in_file)
-        out_file = file_name + out_ext
+        out_file = file_name + ext
         
         return [program_name, in_file, flag_name, out_file], out_file
 
@@ -119,3 +126,10 @@ class Generator:
                 passes += f',{actions[p].value}'
 
         return passes
+
+    def _drop_optnone(self, ir_file):
+        with open(ir_file, 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace('optnone', '')
+        with open (ir_file, 'w') as f:
+            f.write(new_data)

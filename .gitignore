@@ -6,5 +6,5 @@ __pycache__
 
 cBench_V1.1
 
-tmp
-generated_data
+tmp/*
+generated_data/*
