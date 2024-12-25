@@ -2,10 +2,15 @@ import os
 import configparser
 import subprocess
 
+import pandas as pd
+
 from dataset_generator.utils import actions, get_name_without_extention
+
 from src.preprocessor.graphs.ast.ast_graph import ASTGraph 
+
 from src.preprocessor.embeddings.graph2vec_embed import graph2vec
 from src.preprocessor.embeddings.node2vec_mean import get_mean_node_embed
+from src.preprocessor.embeddings.stats_embed import get_stats_embedding
 
 
 class Generator:
@@ -22,8 +27,12 @@ class Generator:
 
 
     def make_dataset(self):
-        # csv : file_name, passes, lenght_without_passes, lenght_with_passes
+        data = []
+        
         for out_asm_file, out_passes_asm_file, cpp_file in self.out_files:
+            row = []
+            row.append(cpp_file)
+            
             out_asm_file_cnt = 0
             with open(out_asm_file) as f:
                 out_asm_file_cnt = sum(1 for _ in f)
@@ -32,11 +41,37 @@ class Generator:
             with open(out_passes_asm_file) as f:
                 out_passes_asm_file_cnt = sum(1 for _ in f)
             
+            profit = (out_asm_file_cnt - out_passes_asm_file_cnt) / out_asm_file_cnt
+            print(profit, cpp_file)
+            
             graph = ASTGraph(cpp_file)
-            embed1 = graph2vec(graph.G)
-            embed2 = get_mean_node_embed(graph.G)
-            print(embed2)
-            # print(out_asm_file_cnt - out_passes_asm_file_cnt, out_passes_asm_file)
+            
+            embedding_list = self.config.get('DATASET', 'embedding').split('\n')[1:]
+
+            if 'Graph2Vec' in embedding_list:
+                embed = graph2vec(graph.G)
+                for param in embed[0]:
+                    row.append(param)
+            
+            if 'StatEmbed' in embedding_list:
+                embed = get_stats_embedding(graph)
+                for param in embed:
+                    row.append(param)
+                
+            if 'Node2Vec' in embedding_list:
+                embed = get_mean_node_embed(graph.G)
+                # for param in embed[0]:
+                #     row.append(param)
+            
+            row.append("some target")
+            data.append(row)
+            
+        cols = [f'feature_{i}' for i in range(len(data[0]) - 2)]
+        cols = ['name'] + cols + ['target']
+        df = pd.DataFrame(data, columns=cols)
+        
+        path = self.config.get('DATASET', 'store_path')
+        df.to_csv(path)
 
 
     def _get_files(self):
