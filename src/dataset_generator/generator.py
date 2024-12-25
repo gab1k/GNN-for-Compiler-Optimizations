@@ -22,33 +22,12 @@ class Generator:
 
     def generate_files(self):
         for file in self._get_files():
-            pass_list = self.config.get('PASSES', 'pass_list').split('\n')[1:]
+            out = self._find_optimal_passes_list(file)
+            if out is not None:
+                optimal_passes, optimal_score = out
             
-            score = {}
-            for perm_list in itertools.permutations(pass_list):    
-                passes = self._get_passes(perm_list)
-
-                out_asm_file, out_passes_asm_file, ret_code = self._gen_files(file, passes)
-                if ret_code == 0:
-                    out_asm_file_cnt = 0
-                    with open(out_asm_file) as f:
-                        out_asm_file_cnt = sum(1 for _ in f)
-                    
-                    out_passes_asm_file_cnt = 0
-                    with open(out_passes_asm_file) as f:
-                        out_passes_asm_file_cnt = sum(1 for _ in f)
-                    
-                    profit = (out_asm_file_cnt - out_passes_asm_file_cnt) / out_asm_file_cnt
-
-                    score[passes] = profit
-            
-            optimal_passes, optimal_score = list(score.items())[0]
-            for passes, score in score.items():
-                if score >= optimal_score:
-                    optimal_passes, optimal_score = passes, score
-            
-            print(file, optimal_passes, optimal_score)
-            self.out_files.append((file, optimal_passes))
+                print(file, optimal_passes, optimal_score)
+                self.out_files.append((file, optimal_passes))
 
     def make_dataset(self):
         data = []
@@ -68,7 +47,7 @@ class Generator:
             
             if 'StatEmbed' in embedding_list:
                 embed = get_stats_embedding(graph)
-                for param in embed:
+                for name, param in embed.items():
                     row.append(param)
                 
             if 'Node2Vec' in embedding_list:
@@ -86,6 +65,70 @@ class Generator:
         
         path = self.config.get('DATASET', 'store_path')
         df.to_csv(path)
+
+
+    def _find_optimal_passes_list(self, file):
+        flag = self.config.get('PASSES', 'default_list').strip()
+        if flag == 'False':
+            pass_list = self.config.get('PASSES', 'pass_list').split('\n')[1:]
+            pass_list = itertools.permutations(pass_list)
+        else:
+            pass_list = [
+                [
+                    'LoopDataPrefetch',
+                    'LoopDeletion',
+                    'LoopDistribute',
+                    'LoopFusion',
+                    'LoopIdiom',
+                    'LoopInstsimplify',
+                    'LoopInterchange',
+                    'LoopLoadElim',
+                    'LoopPredication',
+                ],
+                [
+                    'LoopRotate',
+                    'LoopSimplifycfg',
+                    'LoopReduce',
+                    'LoopUnrollAndJam',
+                    'LoopVersioningLicm',
+                ],
+                [
+                    'SeparateConstOffsetFromGep',
+                    'SimpleLoopUnswitch',
+                    'Sink',
+                    'SpeculativeExecution',
+                    'Slsr',
+                    'Tailcallelim',
+                    # 'Mergereturn',
+                ],
+            ]
+        
+        score = {}
+        for perm_list in pass_list: 
+            passes = self._get_passes(perm_list)
+            out_asm_file, out_passes_asm_file, ret_code = self._gen_files(file, passes)
+            if ret_code == 0:
+                out_asm_file_cnt = 0
+                with open(out_asm_file) as f:
+                    out_asm_file_cnt = sum(1 for _ in f)
+                
+                out_passes_asm_file_cnt = 0
+                with open(out_passes_asm_file) as f:
+                    out_passes_asm_file_cnt = sum(1 for _ in f)
+                
+                profit = (out_asm_file_cnt - out_passes_asm_file_cnt) / out_asm_file_cnt
+                print('finding...', file, passes, profit)
+                score[passes] = profit
+        
+        if score:
+            optimal_passes, optimal_score = list(score.items())[0]
+            for passes, score in score.items():
+                if score >= optimal_score:
+                    optimal_passes, optimal_score = passes, score
+                    
+            return optimal_passes, optimal_score
+        
+        return None
 
 
     def _get_files(self):
@@ -115,24 +158,36 @@ class Generator:
 
     def _gen_files(self, in_file, passes):
         components, ir_file = self._get_components_for_get_ir(in_file)
-        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cp = subprocess.run(components, 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL,
+                        )
         if cp.returncode != 0:
             return "", "", cp.returncode
         
         components, out_asm_file = self._get_components_for_get_asm(ir_file, 's')
-        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cp = subprocess.run(components, 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL,
+                        )
         if cp.returncode != 0:
             return "", "", cp.returncode
         
         self._drop_optnone(ir_file)
         
         components, out_pass_file = self._get_components_for_custom_gen(ir_file, passes)
-        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cp = subprocess.run(components, 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL,
+                        )
         if cp.returncode != 0:
             return "", "", cp.returncode
 
         components, out_passes_asm_file = self._get_components_for_get_asm(out_pass_file, 's-passes')
-        cp = subprocess.run(components, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cp = subprocess.run(components, 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL,
+                        )
 
         return out_asm_file, out_passes_asm_file, cp.returncode
 
