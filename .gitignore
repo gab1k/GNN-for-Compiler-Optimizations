@@ -1,0 +1,14 @@
+.vscode
+venv
+myenv
+
+__pycache__
+.DS_Store
+
+cBench_V1.1
+
+tmp/*
+generated_data/*
+catboost_info
+*.cbm
+*.pth

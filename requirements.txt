@@ -1,0 +1,9 @@
+graphviz
+networkx
+node2vec
+numpy==1.26.4
+scipy==1.12
+pandas
+karateclub
+torch
+catboost
