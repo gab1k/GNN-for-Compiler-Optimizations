@@ -1,6 +1,11 @@
-from src.model.model import Model
 import configparser
-from sklearn.preprocessing import LabelEncoder
+
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+
+from src.model.model import Model
+
 
 def get_config(config_path):
     config = configparser.ConfigParser()
@@ -9,16 +14,10 @@ def get_config(config_path):
     return config
 
 if __name__== '__main__':
-    import pandas as pd
-    from sklearn.model_selection import train_test_split
-
     config = get_config('configs/dataset_generator_config.ini')
 
     data = pd.read_csv('dataset.csv')
     feature_columns = [f'feature_{i}' for i in range(1, 37)]
-
-    label_encoder = LabelEncoder()
-    data['target'] = label_encoder.fit_transform(data['target'])
 
     X = data[feature_columns]
     y = data['target']

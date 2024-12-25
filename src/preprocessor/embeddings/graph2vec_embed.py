@@ -1,7 +1,10 @@
+from copy import deepcopy
+
 import networkx as nx
 from karateclub import Graph2Vec
+
 from src.preprocessor.graphs.ast.ast_graph import ASTGraph 
-from copy import deepcopy
+
 
 def fix_graph_indexing(graphs):
     fixed_graphs = []

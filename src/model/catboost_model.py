@@ -1,8 +1,11 @@
 import os
+
 from catboost import CatBoostClassifier
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
+
 
 class CatBoostClassifierWrapper:
     def __init__(self, iterations=200, depth=3, learning_rate=0.1):

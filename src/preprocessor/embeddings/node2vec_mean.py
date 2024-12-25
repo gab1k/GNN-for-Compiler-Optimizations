@@ -1,7 +1,10 @@
+import copy 
+
+import numpy as np
+
 import networkx as nx
 from node2vec import Node2Vec
-import numpy as np
-import copy 
+
 
 def get_mean_node_embed(G, node_embed_size=32, walk_length=30, num_walks=50, workers=2):
 

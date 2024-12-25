@@ -16,7 +16,6 @@ class Preporcessor:
         }
         self.graph_func_ = self.graph_switcher_.get(graph_mode, self.handle_empty)
 
-
     def process(self, file):
         graph = self.graph_func_(file)
         return self.process_func_(graph)

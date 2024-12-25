@@ -1,5 +1,7 @@
 from src.model.catboost_model import CatBoostClassifierWrapper
 from src.model.small_neural_network import PyTorchMLPClassifier
+
+
 class Model():
     def __init__(self, model_type, input_dim, num_clusses, model_args=None):
         self.model_args = model_args

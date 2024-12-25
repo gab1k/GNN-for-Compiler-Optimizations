@@ -1,5 +1,6 @@
 import networkx as nx
 
+
 class GraphBase:
 
     def __init__(self, is_directed=False):
