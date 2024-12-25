@@ -55,6 +55,15 @@ class Generator:
                 # for param in embed[0]:
                 #     row.append(param)
             
+            flag = self.config.get('PASSES', 'default_list').strip()
+            if flag == 'True':
+                if optimal_passes == 'loop-data-prefetch,loop-deletion,loop-distribute,loop-fusion,loop-idiom,loop-instsimplify,loop-interchange,loop-load-elim,loop-predication':
+                    optimal_passes = 0
+                if optimal_passes == 'loop-rotate,loop-simplifycfg,loop-reduce,loop-unroll-and-jam,loop-versioning-licm':
+                    optimal_passes = 1
+                if optimal_passes == 'separate-const-offset-from-gep,simple-loop-unswitch,sink,speculative-execution,slsr,tailcallelim':
+                    optimal_passes = 2
+                
             row.append(optimal_passes)
 
             data.append(row)
