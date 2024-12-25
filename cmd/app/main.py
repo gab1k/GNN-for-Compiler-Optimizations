@@ -14,11 +14,6 @@ if __name__=='__main__':
     # config = get_config('configs/app.ini')
     # App(config).run("./data/samples/loop.cpp")
 
-    from sklearn.datasets import load_iris
-    import pandas as pd
-    from sklearn.metrics import balanced_accuracy_score
-    from sklearn.model_selection import train_test_split
-
     config = get_config('configs/dataset_generator_config.ini')
 
     data = load_iris()
